@@ -1,3 +1,5 @@
+CREATE DATABASE messengerDatabase CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci;
+
 CREATE TABLE messages(id INT unsigned NOT NULL PRIMARY KEY,
 						conversation_id INT unsigned NOT NULL,
 						user_id INT unsigned NOT NULL,
@@ -25,7 +27,7 @@ CREATE TABLE moderators(user_id int unsigned not null,
 						conversation_id int unsigned not null);
 CREATE TABLE interactions(id int unsigned not null primary key,
 							user_id int unsigned not null,
-                            type_of_interaction tinyint,
+                            type_of_interaction character,
                             message_id int unsigned);
 
 
