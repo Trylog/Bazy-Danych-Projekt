@@ -7,19 +7,19 @@ CREATE TABLE messages(id INT unsigned NOT NULL PRIMARY KEY auto_increment,
                         time_of_writing datetime,
                         answer_to_id INT unsigned);
 CREATE TABLE users(id INT unsigned not null primary key auto_increment,
-					first_name varchar(32),
-                    last_name varchar(32),
+					first_name varchar(32) NOT NULL,
+                    last_name varchar(32) NOT NULL,
                     avatar mediumblob,
                     status enum('active', 'not active'));
 CREATE TABLE removed_users(id INT unsigned not null auto_increment primary key,
-                            first_name varchar(32),
-                            last_name varchar(32));
+                            first_name varchar(32) NOT NULL,
+                            last_name varchar(32) NOT NULL);
 CREATE TABLE conversations(id int unsigned not null primary key auto_increment,
-							name varchar(32),
+							name varchar(32) NOT NULL,
                             creation_date datetime,
                             invitation bool,
                             avatar mediumblob,
-                            admin_id int unsigned);
+                            admin_id int unsigned NOT NULL);
 CREATE TABLE conversation_members(user_id int unsigned not null,
 									conversation_id int unsigned not null);
 CREATE TABLE moderators(user_id int unsigned not null,
@@ -27,7 +27,7 @@ CREATE TABLE moderators(user_id int unsigned not null,
 CREATE TABLE interactions(id int unsigned not null primary key auto_increment,
 							user_id int unsigned not null,
                             type_of_interaction character,
-                            message_id int unsigned);
+                            message_id int unsigned NOT NULL);
 
 ###TODO implement date format change into database (date -> datetime)
 
