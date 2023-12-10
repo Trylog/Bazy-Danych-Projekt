@@ -36,4 +36,138 @@ BEGIN
     INSERT INTO messengerdatabase.moderators (user_id, conversation_id)
         VALUES (current_user_id, current_conversation_id);
 end;
+# usuwanie czatu
+create
+    definer = root@localhost procedure chat_delete(IN conv_name varchar(32))
+BEGIN
+    DECLARE conv_id int unsigned;
+    SELECT id FROM messengerdatabase.conversations WHERE name = conv_name INTO conv_id;
+    DELETE FROM messengerdatabase.conversation_members
+        WHERE conversation_id = conv_id;
+    DELETE FROM messengerdatabase.messages
+        WHERE conversation_id = conv_id;
+    DELETE FROM messengerdatabase.moderators
+        WHERE conversation_id = conv_id;
+    DELETE FROM messengerdatabase.conversations
+        WHERE id = conv_id;
+end;
+# wszystkie konwersacje, do ktorych nalezy uzytkownik
+create
+    definer = root@localhost procedure show_conversations(IN id int unsigned)
+BEGIN
+    select conversation_id from messengerdatabase.conversation_members where user_id = id;
+end;
+# wszystkie wiadomości z danej konwersacji
+create
+    definer = root@localhost procedure show_messages(IN id int unsigned)
+BEGIN
+    select * from messengerdatabase.messages where conversation_id = id;
+end;
+# zmiana danych uzytkownika
+CREATE PROCEDURE modify_user_data(IN new_first_name VARCHAR(32),
+                                  IN new_last_name VARCHAR(32),
+                                  IN new_avatar MEDIUMBLOB)
+BEGIN
+	DECLARE current_user_id int unsigned DEFAULT USER();
 
+    UPDATE messengerdatabase.users
+    SET first_name = new_first_name,
+        last_name = new_last_name,
+        avatar = new_avatar
+    WHERE id = current_user_id;
+END;
+# usuniecie uzytkownika z konwersacji
+CREATE PROCEDURE remove_user_from_conversation(IN conv_name varchar(32))
+BEGIN
+    DECLARE conv_id INT UNSIGNED;
+    DECLARE current_user_id INT UNSIGNED DEFAULT USER();
+
+    SELECT id FROM messengerdatabase.conversations WHERE name = conv_name INTO conv_id;
+
+    DELETE FROM messengerdatabase.conversation_members
+    WHERE user_id = current_user_id AND conversation_id = conv_id;
+END;
+# usuniecie wiadomosci uzytkownika
+CREATE PROCEDURE delete_messages_for_user(IN messages_id INT UNSIGNED)
+BEGIN
+	DECLARE current_user_id int unsigned DEFAULT USER();
+
+    DELETE messengerdatabase.messages
+    FROM messengerdatabase.messages
+    JOIN messengerdatabase.moderators ON moderators.user_id = current_user_id
+    WHERE messages.conversation_id = moderators.conversation_id AND  id = messages_id;
+END;
+# zmiana danych konwersacji
+CREATE PROCEDURE modify_conversation_data(IN conv_name varchar(32),
+										  IN new_name VARCHAR(32),
+                                          IN new_invitation BOOL,
+                                          IN new_avatar MEDIUMBLOB)
+BEGIN
+
+DECLARE conv_id INT UNSIGNED;
+SELECT id FROM messengerdatabase.conversations WHERE name = conv_name INTO conv_id;
+
+    UPDATE messengerdatabase.conversations
+    SET name = new_name,
+        invitation = new_invitation,
+        avatar = new_avatar
+    WHERE id = conv_id;
+END;
+# usuwanie tabeli
+# usuwanie uzytkownika z konwersacji moze sie nie udac
+# jak bedzie zalogowany admin to nie usunie wszystkich uzytkownikow tylko admina
+# trzeba zrobic funkcje ktora bedzie usuwala wszystkich z conversation_members
+# teoretycznie robi to funkcja delete_chat
+CREATE PROCEDURE remove_conversation(IN conv_name varchar(32))
+BEGIN
+
+	DECLARE conv_id INT UNSIGNED;
+	SELECT id FROM messengerdatabase.conversations WHERE name = conv_name INTO conv_id;
+
+	CALL remove_user_from_conversation(conv_id);
+
+	DELETE FROM messengerdatabase.conversation_members
+	WHERE conversation_id = conv_id;
+
+	DELETE from messengerdatabase.conversations
+	WHERE id = conv_id;
+
+END;
+# usuwanie moderatora przez moderatora
+CREATE PROCEDURE delete_moderator_by_moderator(IN new_user_id INT UNSIGNED,IN conv_name varchar(32))
+BEGIN
+
+	DECLARE conv_id INT UNSIGNED;
+	SELECT id FROM messengerdatabase.conversations WHERE name = conv_name INTO conv_id;
+
+	INSERT INTO messengerdatabase.moderators (user_id, conversation_id)
+	VALUES (new_user_id, conv_id);
+
+END;
+# usuwanie moderatora
+CREATE PROCEDURE delete_moderator(IN conv_name varchar(32))
+BEGIN
+    DECLARE current_user_id INT UNSIGNED DEFAULT USER();
+	DECLARE conv_id INT UNSIGNED;
+
+	SELECT id FROM messengerdatabase.conversations WHERE name = conv_name INTO conv_id;
+
+	DELETE FROM messengerdatabase.moderators
+	WHERE user_id = current_user_id AND conversation_id = conv_id;
+
+END;
+# usuwanie uzytkownika
+CREATE PROCEDURE remove_user_from_portal(IN removed_user_id INT UNSIGNED)
+BEGIN
+	DELETE FROM messengerdatabase.moderators
+	WHERE user_id = removed_user_id;
+
+	DELETE FROM messengerdatabase.conversation_members
+	WHERE user_id = removed_user_id;
+
+	#todo: Usunięcie z wiadomosci
+
+	DELETE FROM messengerdatabase.users
+	WHERE id = removed_user_id;
+
+END;
