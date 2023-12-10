@@ -2,6 +2,8 @@
 # 1. zmiana statusu aktywnosci uzytkownika po zalogowaniu
 # 2. dodatkowa tabela przechowujaca informacje o edycji wiadomosci
 # 3. dodatkowa tabela przechowujaca informacje o edycji danych konwersacji
+
+# USER_DEL tworzy rekord w tabeli removed_users z danymi usunietego uzytkownika
 CREATE TRIGGER USER_DEL AFTER DELETE ON messengerdatabase.users
     FOR EACH ROW
     BEGIN
@@ -9,6 +11,7 @@ CREATE TRIGGER USER_DEL AFTER DELETE ON messengerdatabase.users
         VALUES (old.id, old.first_name, old.last_name);
     END;
 
+# CON_DEL usuwa dane konwersacji we wszystkich tabelach z kluczem obcym zanim usunie rekord z tabeli conversations
 CREATE TRIGGER CON_DEL BEFORE DELETE ON messengerdatabase.conversations
     FOR EACH ROW
     BEGIN
