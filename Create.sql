@@ -1,4 +1,4 @@
-CREATE DATABASE messengerDatabase CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci;
+CREATE DATABASE messengerdatabase CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci;
 
 CREATE TABLE messages(id INT unsigned NOT NULL PRIMARY KEY auto_increment,
 						conversation_id INT unsigned NOT NULL,
@@ -7,19 +7,19 @@ CREATE TABLE messages(id INT unsigned NOT NULL PRIMARY KEY auto_increment,
                         time_of_writing datetime,
                         answer_to_id INT unsigned);
 CREATE TABLE users(id INT unsigned not null primary key auto_increment,
-					first_name varchar(32) NOT NULL,
-                    last_name varchar(32) NOT NULL,
+					first_name varchar(32),
+                    last_name varchar(32),
                     avatar mediumblob,
-                    status enum('active', 'not active'));
+                    status enum('active', 'not active') not null);
 CREATE TABLE removed_users(id INT unsigned not null auto_increment primary key,
-                            first_name varchar(32) NOT NULL,
-                            last_name varchar(32) NOT NULL);
+                            first_name varchar(32),
+                            last_name varchar(32));
 CREATE TABLE conversations(id int unsigned not null primary key auto_increment,
-							name varchar(32) NOT NULL,
+							name varchar(32) unique,
                             creation_date datetime,
                             invitation bool,
                             avatar mediumblob,
-                            admin_id int unsigned NOT NULL);
+                            admin_id int unsigned);
 CREATE TABLE conversation_members(user_id int unsigned not null,
 									conversation_id int unsigned not null);
 CREATE TABLE moderators(user_id int unsigned not null,
@@ -27,7 +27,7 @@ CREATE TABLE moderators(user_id int unsigned not null,
 CREATE TABLE interactions(id int unsigned not null primary key auto_increment,
 							user_id int unsigned not null,
                             type_of_interaction character,
-                            message_id int unsigned NOT NULL);
+                            message_id int unsigned);
 
 ###TODO implement date format change into database (date -> datetime)
 

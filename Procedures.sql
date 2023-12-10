@@ -28,3 +28,12 @@ BEGIN
     INSERT INTO messengerdatabase.interactions (user_id, type_of_interaction, message_id)
         VALUES (current_user_id, emoticon, msId);
 end;
+
+create
+    definer = root@localhost procedure add_moderator(IN current_user_id int unsigned,
+                                                    IN current_conversation_id int unsigned)
+BEGIN
+    INSERT INTO messengerdatabase.moderators (user_id, conversation_id)
+        VALUES (current_user_id, current_conversation_id);
+end;
+
