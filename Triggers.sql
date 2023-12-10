@@ -9,3 +9,14 @@ CREATE TRIGGER USER_DEL AFTER DELETE ON messengerdatabase.users
         VALUES (old.id, old.first_name, old.last_name);
     END;
 
+CREATE TRIGGER CON_DEL BEFORE DELETE ON messengerdatabase.conversations
+    FOR EACH ROW
+    BEGIN
+        DELETE FROM messengerdatabase.conversation_members
+        WHERE conversation_id = old.id;
+        DELETE FROM messengerdatabase.messages
+        WHERE conversation_id = old.id;
+        DELETE FROM messengerdatabase.moderators
+        WHERE conversation_id = old.id;
+    END;
+

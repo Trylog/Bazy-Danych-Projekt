@@ -42,12 +42,6 @@ create
 BEGIN
     DECLARE conv_id int unsigned;
     SELECT id FROM messengerdatabase.conversations WHERE name = conv_name INTO conv_id;
-    DELETE FROM messengerdatabase.conversation_members
-        WHERE conversation_id = conv_id;
-    DELETE FROM messengerdatabase.messages
-        WHERE conversation_id = conv_id;
-    DELETE FROM messengerdatabase.moderators
-        WHERE conversation_id = conv_id;
     DELETE FROM messengerdatabase.conversations
         WHERE id = conv_id;
 end;
