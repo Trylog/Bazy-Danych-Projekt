@@ -84,12 +84,15 @@ END;
 # usuniecie wiadomosci uzytkownika
 CREATE PROCEDURE delete_messages_for_user(IN messages_id INT UNSIGNED)
 BEGIN
-	DECLARE current_user_id int unsigned DEFAULT USER();
+    DECLARE current_user_id int unsigned DEFAULT USER();
+    # przed usunieciem wiadomosci sprawdzamy czy nie jest ona reakcja
+    # jesli jest - usuwamy z tabeli reakcje
+    CALL delete_reaction_for_user(messages_id);
 
-    DELETE messengerdatabase.messages
-    FROM messengerdatabase.messages
-    JOIN messengerdatabase.moderators ON moderators.user_id = current_user_id
-    WHERE messages.conversation_id = moderators.conversation_id AND  id = messages_id;
+    DELETE messages
+    FROM messages
+    JOIN moderators ON moderators.user_id = current_user_id
+    WHERE messages.conversation_id = moderators.conversation_id AND  messages.id = messages_id;
 END;
 # zmiana danych konwersacji
 CREATE PROCEDURE modify_conversation_data(IN conv_name varchar(32),
@@ -106,26 +109,6 @@ SELECT id FROM messengerdatabase.conversations WHERE name = conv_name INTO conv_
         invitation = new_invitation,
         avatar = new_avatar
     WHERE id = conv_id;
-END;
-# usuwanie tabeli
-# usuwanie uzytkownika z konwersacji moze sie nie udac
-# jak bedzie zalogowany admin to nie usunie wszystkich uzytkownikow tylko admina
-# trzeba zrobic funkcje ktora bedzie usuwala wszystkich z conversation_members
-# teoretycznie robi to funkcja delete_chat
-CREATE PROCEDURE remove_conversation(IN conv_name varchar(32))
-BEGIN
-
-	DECLARE conv_id INT UNSIGNED;
-	SELECT id FROM messengerdatabase.conversations WHERE name = conv_name INTO conv_id;
-
-	CALL remove_user_from_conversation(conv_id);
-
-	DELETE FROM messengerdatabase.conversation_members
-	WHERE conversation_id = conv_id;
-
-	DELETE from messengerdatabase.conversations
-	WHERE id = conv_id;
-
 END;
 # usuwanie moderatora przez moderatora
 CREATE PROCEDURE delete_moderator_by_moderator(IN new_user_id INT UNSIGNED,IN conv_name varchar(32))
@@ -170,17 +153,6 @@ CREATE PROCEDURE delete_reaction_for_user(IN removed_messages_id INT UNSIGNED)
 BEGIN
     DELETE FROM interactions WHERE message_id = removed_messages_id;
 END;
-# usuniecie wiadomosci
-CREATE PROCEDURE delete_messages_for_user(IN messages_id INT UNSIGNED)
-BEGIN
-    DECLARE current_user_id int unsigned DEFAULT USER();
-    # przed usunieciem wiadomosci sprawdzamy czy nie jest ona reakcja
-    # jesli jest - usuwamy z tabeli reakcje
-    CALL delete_reaction_for_user(messages_id);
 
-    DELETE messages
-    FROM messages
-    JOIN moderators ON moderators.user_id = current_user_id
-    WHERE messages.conversation_id = moderators.conversation_id AND  messages.id = messages_id;
-END;
+
 
