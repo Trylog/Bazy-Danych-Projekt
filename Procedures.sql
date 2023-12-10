@@ -165,3 +165,22 @@ BEGIN
 	WHERE id = removed_user_id;
 
 END;
+# usuniecie reakcji
+CREATE PROCEDURE delete_reaction_for_user(IN removed_messages_id INT UNSIGNED)
+BEGIN
+    DELETE FROM interactions WHERE message_id = removed_messages_id;
+END;
+# usuniecie wiadomosci
+CREATE PROCEDURE delete_messages_for_user(IN messages_id INT UNSIGNED)
+BEGIN
+    DECLARE current_user_id int unsigned DEFAULT USER();
+    # przed usunieciem wiadomosci sprawdzamy czy nie jest ona reakcja
+    # jesli jest - usuwamy z tabeli reakcje
+    CALL delete_reaction_for_user(messages_id);
+
+    DELETE messages
+    FROM messages
+    JOIN moderators ON moderators.user_id = current_user_id
+    WHERE messages.conversation_id = moderators.conversation_id AND  messages.id = messages_id;
+END;
+
