@@ -3,8 +3,18 @@ CREATE DEFINER = root@localhost
 PROCEDURE new_conversation(IN conv_name varchar(32), IN req_invitation tinyint(1), IN cAvatar mediumblob)
 SQL SECURITY DEFINER
 BEGIN
-    DECLARE current_user_id int unsigned DEFAULT USER();
+
     DECLARE last_id INT DEFAULT 0;
+
+    DECLARE current_username VARCHAR(100);
+    DECLARE current_user_id INT UNSIGNED;
+
+    SET current_username = USER();
+    IF current_username = 'root' THEN
+        SET current_user_id = 0;
+    ELSE
+        SET current_user_id = cast(SUBSTRING(current_username, 1, LENGTH(current_username) - LOCATE('@', REVERSE(current_username))) AS UNSIGNED);
+    end if;
 
     INSERT INTO messengerdatabase.conversations (name, creation_date, invitation, avatar, admin_id)
         VALUES (conv_name, NOW(), req_invitation, cAvatar, current_user_id);
@@ -18,7 +28,15 @@ DELIMITER //
 CREATE PROCEDURE join_conversation(IN conv_name varchar(32))
 BEGIN
     DECLARE conv_id int unsigned;
-    DECLARE current_user_id int unsigned DEFAULT USER();
+    DECLARE current_username VARCHAR(100);
+    DECLARE current_user_id INT UNSIGNED;
+
+    SET current_username = USER();
+    IF current_username = 'root' THEN
+        SET current_user_id = 0;
+    ELSE
+        SET current_user_id = cast(SUBSTRING(current_username, 1, LENGTH(current_username) - LOCATE('@', REVERSE(current_username))) AS UNSIGNED);
+    end if;
     SELECT id FROM messengerdatabase.conversations WHERE name = conv_name INTO conv_id;
     INSERT INTO messengerdatabase.conversation_members (user_id, conversation_id) VALUES (current_user_id, conv_id);
 end //
@@ -27,7 +45,15 @@ delimiter ;
 DELIMITER //
 CREATE PROCEDURE send_message(IN cont varchar(1024), IN conversationId int unsigned, IN answerToId int unsigned)
 BEGIN
-    DECLARE current_user_id int unsigned DEFAULT USER();
+    DECLARE current_username VARCHAR(100);
+    DECLARE current_user_id INT UNSIGNED;
+
+    SET current_username = USER();
+    IF current_username = 'root' THEN
+        SET current_user_id = 0;
+    ELSE
+        SET current_user_id = cast(SUBSTRING(current_username, 1, LENGTH(current_username) - LOCATE('@', REVERSE(current_username))) AS UNSIGNED);
+    end if;
     INSERT INTO messengerdatabase.messages(conversation_id, user_id, content, time_of_writing, answer_to_id)
         VALUES (conversationId, current_user_id, cont, NOW(), answerToId);
 end //
@@ -36,7 +62,15 @@ delimiter ;
 DELIMITER //
 CREATE PROCEDURE send_interaction(IN emoticon char, IN msId int unsigned)
 BEGIN
-    DECLARE current_user_id int unsigned DEFAULT USER();
+    DECLARE current_username VARCHAR(100);
+    DECLARE current_user_id INT UNSIGNED;
+
+    SET current_username = USER();
+    IF current_username = 'root' THEN
+        SET current_user_id = 0;
+    ELSE
+        SET current_user_id = cast(SUBSTRING(current_username, 1, LENGTH(current_username) - LOCATE('@', REVERSE(current_username))) AS UNSIGNED);
+    end if;
     INSERT INTO messengerdatabase.interactions (user_id, type_of_interaction, message_id)
         VALUES (current_user_id, emoticon, msId);
 end //
@@ -89,7 +123,15 @@ DELIMITER //
 # zmiana danych uzytkownika
 CREATE PROCEDURE modify_user_data(IN new_first_name VARCHAR(32), IN new_last_name VARCHAR(32), IN new_avatar MEDIUMBLOB)
 BEGIN
-	DECLARE current_user_id int unsigned DEFAULT USER();
+	DECLARE current_username VARCHAR(100);
+    DECLARE current_user_id INT UNSIGNED;
+
+    SET current_username = USER();
+    IF current_username = 'root' THEN
+        SET current_user_id = 0;
+    ELSE
+        SET current_user_id = cast(SUBSTRING(current_username, 1, LENGTH(current_username) - LOCATE('@', REVERSE(current_username))) AS UNSIGNED);
+    end if;
 
     UPDATE messengerdatabase.users
     SET first_name = new_first_name, last_name = new_last_name, avatar = new_avatar WHERE id = current_user_id;
@@ -101,7 +143,15 @@ DELIMITER //
 CREATE PROCEDURE remove_user_from_conversation(IN conv_name varchar(32))
 BEGIN
     DECLARE conv_id INT UNSIGNED;
-    DECLARE current_user_id INT UNSIGNED DEFAULT USER();
+    DECLARE current_username VARCHAR(100);
+    DECLARE current_user_id INT UNSIGNED;
+
+    SET current_username = USER();
+    IF current_username = 'root' THEN
+        SET current_user_id = 0;
+    ELSE
+        SET current_user_id = cast(SUBSTRING(current_username, 1, LENGTH(current_username) - LOCATE('@', REVERSE(current_username))) AS UNSIGNED);
+    end if;
 
     SELECT id FROM messengerdatabase.conversations WHERE name = conv_name INTO conv_id;
 
@@ -113,7 +163,15 @@ DELIMITER //
 # usuniecie wiadomosci uzytkownika
 CREATE PROCEDURE delete_message(IN messages_id INT UNSIGNED)
 BEGIN
-    DECLARE current_user_id int unsigned DEFAULT USER();
+    DECLARE current_username VARCHAR(100);
+    DECLARE current_user_id INT UNSIGNED;
+
+    SET current_username = USER();
+    IF current_username = 'root' THEN
+        SET current_user_id = 0;
+    ELSE
+        SET current_user_id = cast(SUBSTRING(current_username, 1, LENGTH(current_username) - LOCATE('@', REVERSE(current_username))) AS UNSIGNED);
+    end if;
     #CALL delete_message_reactions(messages_id);
     DELETE FROM messengerdatabase.messages WHERE id = messages_id AND user_id = current_user_id;
 
@@ -149,8 +207,16 @@ DELIMITER //
 # usuwanie moderatora
 CREATE PROCEDURE delete_moderator(IN conv_name varchar(32))
 BEGIN
-    DECLARE current_user_id INT UNSIGNED DEFAULT USER();
-	DECLARE conv_id INT UNSIGNED;
+    DECLARE conv_id INT UNSIGNED;
+    DECLARE current_username VARCHAR(100);
+    DECLARE current_user_id INT UNSIGNED;
+
+    SET current_username = USER();
+    IF current_username = 'root' THEN
+        SET current_user_id = 0;
+    ELSE
+        SET current_user_id = cast(SUBSTRING(current_username, 1, LENGTH(current_username) - LOCATE('@', REVERSE(current_username))) AS UNSIGNED);
+    end if;
 
 	SELECT id FROM messengerdatabase.conversations WHERE name = conv_name INTO conv_id;
 
@@ -165,7 +231,7 @@ CREATE PROCEDURE remove_user_from_portal(IN removed_user_id INT UNSIGNED)
 BEGIN
 	DELETE FROM messengerdatabase.moderators WHERE user_id = removed_user_id;
 	DELETE FROM messengerdatabase.conversation_members WHERE user_id = removed_user_id;
-	UPDATE messengerdatabase.users SET avatar = null, status = 'not active', is_deleted = 'true';
+	UPDATE messengerdatabase.users SET avatar = null, status = 'not active', is_deleted = 'true' WHERE id = removed_user_id;
 END //
 delimiter ;
 
