@@ -12,9 +12,9 @@ CREATE TABLE users(id INT unsigned not null primary key auto_increment,
                     avatar mediumblob,
                     status enum('not active', 'active') not null,
                     is_deleted enum('no', 'yes')not null);
-CREATE TABLE removed_users(id INT unsigned not null primary key,
-                            first_name varchar(32),
-                            last_name varchar(32));
+#CREATE TABLE removed_users(id INT unsigned not null primary key,
+#                            first_name varchar(32),
+#                            last_name varchar(32));
 CREATE TABLE conversations(id int unsigned not null primary key auto_increment,
 							name varchar(32) unique,
                             creation_date datetime,
