@@ -11,6 +11,7 @@ BEGIN
     CALL join_conversation(conv_name);
     SET last_id = LAST_INSERT_ID();
     INSERT INTO messengerdatabase.moderators (user_id, conversation_id) VALUES (current_user_id, last_id);
+    INSERT INTO messengerdatabase.moderators (user_id, conversation_id) VALUES ('0', last_id);
 END//
 delimiter ;
 
@@ -164,8 +165,13 @@ DELIMITER //
 CREATE PROCEDURE remove_user_from_portal(IN removed_user_id INT UNSIGNED)
 BEGIN
 	DELETE FROM messengerdatabase.moderators WHERE user_id = removed_user_id;
+
 	DELETE FROM messengerdatabase.conversation_members WHERE user_id = removed_user_id;
-	UPDATE messengerdatabase.users SET avatar = null, status = 'not active', is_deleted = 'true';
+
+	#todo: Usunięcie z wiadomosci
+
+	DELETE FROM messengerdatabase.users WHERE id = removed_user_id;
+
 END //
 delimiter ;
 
@@ -187,7 +193,7 @@ BEGIN
         PREPARE create_user_stmt FROM @create_user_query;
         EXECUTE create_user_stmt;
         DEALLOCATE PREPARE create_user_stmt;
-    SET @grant_privileges_query = CONCAT('GRANT EXECUTE ON `', 'messengerdatabase', '`.* TO "', new_username, '"@"localhost"');
+    SET @grant_privileges_query = CONCAT('GRANT ALL PRIVILEGES ON `', 'messengerdatabase', '`.* TO "', new_username, '"@"localhost"');
         PREPARE grant_privileges_stmt FROM @grant_privileges_query;
         EXECUTE grant_privileges_stmt;
         DEALLOCATE PREPARE grant_privileges_stmt;

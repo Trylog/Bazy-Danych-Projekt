@@ -10,12 +10,13 @@ CREATE TABLE users(id INT unsigned not null primary key auto_increment,
 					first_name varchar(32),
                     last_name varchar(32),
                     avatar mediumblob,
-                    status enum('active', 'not active'));
-CREATE TABLE removed_users(id INT unsigned not null auto_increment primary key,
+                    status enum('not active', 'active') not null,
+                    is_deleted enum('no', 'yes')not null);
+CREATE TABLE removed_users(id INT unsigned not null primary key,
                             first_name varchar(32),
                             last_name varchar(32));
 CREATE TABLE conversations(id int unsigned not null primary key auto_increment,
-							name varchar(32),
+							name varchar(32) unique,
                             creation_date datetime,
                             invitation bool,
                             avatar mediumblob,
@@ -29,34 +30,32 @@ CREATE TABLE interactions(id int unsigned not null primary key auto_increment,
                             type_of_interaction character,
                             message_id int unsigned);
 
-###TODO implement date format change into database (date -> datetime)
-
 
 ALTER TABLE messages ADD constraint FK_conversation_id foreign key (conversation_id)
-										references conversations(id);
+										references conversations(id) on delete cascade ;
 ALTER TABLE messages ADD constraint FK_user_id foreign key (user_id)
 										references users(id);
-ALTER TABLE messages ADD constraint FK_removed_user_id foreign key (user_id)
-										references removed_users(id);
+#ALTER TABLE messages ADD constraint FK_removed_user_id foreign key (user_id)
+										#references removed_users(id);
 ALTER TABLE messages ADD constraint FK_answer_to_id foreign key (answer_to_id)
-										references messages(id);
+										references messages(id) on delete set null;
 
 ALTER TABLE conversation_members ADD constraint FK_cm_user_id foreign key (user_id)
 										references users(id);
 ALTER TABLE conversation_members ADD constraint FK_cm_conversation_id foreign key (conversation_id)
-										references conversations(id);
+										references conversations(id) on delete cascade;
 
 ALTER TABLE interactions ADD constraint FK_i_user_id foreign key (user_id)
 								references users(id);
-ALTER TABLE interactions ADD constraint FK_i_removed_user_id foreign key (user_id)
-								references removed_users(id);
+#ALTER TABLE interactions ADD constraint FK_i_removed_user_id foreign key (user_id)
+								#references removed_users(id);
 ALTER TABLE interactions ADD constraint FK_i_message_id foreign key (message_id)
-								references messages(id);
+								references messages(id) on delete cascade;
 
 ALTER TABLE moderators ADD constraint FK_m_user_id foreign key (user_id)
                                 references users(id);
 ALTER TABLE moderators ADD constraint FK_m_conversation_id foreign key (conversation_id)
-                                references conversations(id);
+                                references conversations(id) on delete cascade;
 
 
 
